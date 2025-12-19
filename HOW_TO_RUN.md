@@ -12,9 +12,7 @@ Choose the method for your operating system:
 
 **Double-click one of these files:**
 - `RUN.bat` - Opens two command windows
-- `start-all.ps1` - Opens two PowerShell windows
 
-Both do the same thing - run backend and frontend.
 
 ### Option 2: PowerShell
 

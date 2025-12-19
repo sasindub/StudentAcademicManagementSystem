@@ -1,31 +1,4 @@
-# 📥 Download and Run - For Clients
-
-## 🎯 How to Get This Project
-
-### Option 1: Download ZIP (Easiest)
-
-1. **Go to GitHub:**
-   ```
-   https://github.com/sasindub/StudentAcademicManagementSystem
-   ```
-
-2. **Switch to `dev` branch:**
-   - Click the branch dropdown (says "main")
-   - Select **"dev"**
-
-3. **Download:**
-   - Click green **"Code"** button
-   - Click **"Download ZIP"**
-   - Extract the ZIP file
-
-### Option 2: Clone with Git
-
-```bash
-git clone -b dev https://github.com/sasindub/StudentAcademicManagementSystem.git
-cd StudentAcademicManagementSystem
-```
-
----
+# 📥 Download and Run
 
 ## ⚡ Quick Setup (After Download)
 
