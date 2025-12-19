@@ -36,9 +36,8 @@ else:
     logger.warning(f"[WARN] Using fallback path: {parent}")
 
 # Now import FastAPI and backend modules
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import Response
 
 try:
     from config import settings
@@ -54,10 +53,6 @@ except ImportError as e:
     logger.error(f"[DEBUG] Current directory: {os.getcwd()}")
     logger.error(f"[DEBUG] File location: {current_file}")
     raise
-
-# Configure logging
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
 
 # Create FastAPI application (without lifespan for serverless)
 app = FastAPI(
@@ -80,8 +75,6 @@ app.add_middleware(
 )
 
 # Add explicit OPTIONS handler for preflight requests
-from fastapi import Response
-
 @app.options("/{full_path:path}")
 async def options_handler(full_path: str):
     """Handle OPTIONS preflight requests with proper CORS headers."""
