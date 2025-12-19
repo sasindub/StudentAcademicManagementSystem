@@ -34,32 +34,52 @@ app = FastAPI(
     redoc_url="/api/redoc"
 )
 
-# Configure CORS - Allow all origins for Vercel deployment
-cors_origins = settings.cors_origins if settings.cors_origins else ["*"]
+# Configure CORS - Allow ALL origins (no restrictions)
+# This MUST be added BEFORE routes
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # Allow all for Vercel (can restrict later)
+    allow_origins=["*"],  # Allow all origins
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"],  # Explicit methods
+    allow_headers=["*"],  # Allow all headers
+    expose_headers=["*"],
 )
 
-# Include routers with /api prefix for Vercel
-app.include_router(auth_router, prefix="/api")
-app.include_router(students_router, prefix="/api")
-app.include_router(marks_router, prefix="/api")
+# Add explicit OPTIONS handler for preflight requests
+from fastapi import Response
 
+@app.options("/{full_path:path}")
+async def options_handler(full_path: str):
+    """Handle OPTIONS preflight requests with proper CORS headers."""
+    return Response(
+        content="OK",
+        headers={
+            "Access-Control-Allow-Origin": "*",
+            "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+            "Access-Control-Allow-Headers": "*",
+            "Access-Control-Allow-Credentials": "true",
+            "Access-Control-Max-Age": "3600"
+        }
+    )
+
+# Include routers WITHOUT /api prefix (Vercel handles routing)
+# This way frontend can call /auth/login directly
+app.include_router(auth_router)
+app.include_router(students_router)
+app.include_router(marks_router)
+
+@app.get("/", tags=["Root"])
 @app.get("/api", tags=["Root"])
-@app.get("/api/", tags=["Root"])
 async def root():
     """Root endpoint - API health check."""
     return {
         "message": "Student Academic Management System API",
         "status": "running",
         "version": "1.0.0",
-        "docs": "/api/docs"
+        "docs": "/docs"
     }
 
+@app.get("/health", tags=["Health"])
 @app.get("/api/health", tags=["Health"])
 async def health_check():
     """Health check endpoint for monitoring."""
@@ -84,11 +104,18 @@ async def initialize_db():
         except Exception as e:
             logger.error(f"[ERROR] Database init failed: {e}")
 
-# Middleware to initialize DB on first request
+# Middleware to initialize DB and add CORS headers
 @app.middleware("http")
 async def init_db_middleware(request, call_next):
     await initialize_db()
     response = await call_next(request)
+    
+    # Explicitly add CORS headers to EVERY response
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    response.headers["Access-Control-Allow-Credentials"] = "true"
+    
     return response
 
 # Vercel serverless function handler
