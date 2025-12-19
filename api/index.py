@@ -5,21 +5,55 @@ This file is used when deploying to Vercel
 import os
 import sys
 from pathlib import Path
-
-# Add Backend directory to Python path
-backend_path = Path(__file__).parent.parent / "Backend"
-sys.path.insert(0, str(backend_path))
-
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 import logging
 
-from config import settings
-from database import connect_to_mongo
-from services.seed_service import SeedService
-from routes.auth import router as auth_router
-from routes.students import router as students_router
-from routes.marks import router as marks_router
+# Configure logging first
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Find Backend directory - check local first (api/Backend), then parent
+current_file = Path(__file__).resolve()
+possible_paths = [
+    current_file.parent / "Backend",  # api/Backend (copied for Vercel)
+    current_file.parent.parent / "Backend",  # api/../Backend (local dev)
+    Path("/var/task/Backend"),  # Vercel's working directory
+    Path.cwd() / "Backend",  # Current working directory
+]
+
+backend_path = None
+for path in possible_paths:
+    if path.exists() and (path / "config.py").exists():
+        backend_path = path
+        logger.info(f"[OK] Found Backend at: {backend_path}")
+        break
+
+if backend_path:
+    sys.path.insert(0, str(backend_path))
+else:
+    # Last resort: try adding parent directory
+    parent = current_file.parent.parent
+    sys.path.insert(0, str(parent))
+    logger.warning(f"[WARN] Using fallback path: {parent}")
+
+# Now import FastAPI and backend modules
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Response
+
+try:
+    from config import settings
+    from database import connect_to_mongo
+    from services.seed_service import SeedService
+    from routes.auth import router as auth_router
+    from routes.students import router as students_router
+    from routes.marks import router as marks_router
+    logger.info("[OK] All imports successful")
+except ImportError as e:
+    logger.error(f"[ERROR] Import failed: {e}")
+    logger.error(f"[DEBUG] Python path: {sys.path}")
+    logger.error(f"[DEBUG] Current directory: {os.getcwd()}")
+    logger.error(f"[DEBUG] File location: {current_file}")
+    raise
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)

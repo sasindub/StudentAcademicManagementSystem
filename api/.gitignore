@@ -1,8 +1,5 @@
-Frontend/
-node_modules/
-*.log
-.env
-Backend/.env
 Backend/__pycache__/
 Backend/**/__pycache__/
+Backend/.env
 *.pyc
+
