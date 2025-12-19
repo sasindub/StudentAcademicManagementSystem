@@ -52,3 +52,4 @@ const StatCard = ({ title, value, icon: Icon, trend, color = 'primary', delay = 
 
 export default StatCard;
 
+

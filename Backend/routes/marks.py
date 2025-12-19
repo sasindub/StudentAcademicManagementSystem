@@ -364,3 +364,4 @@ async def get_marks_summary(
         "availableYears": sorted(years, reverse=True) if years else []
     }
 
+

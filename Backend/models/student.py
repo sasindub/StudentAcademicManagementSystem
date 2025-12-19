@@ -55,3 +55,4 @@ class StudentResponse(BaseModel):
     class Config:
         from_attributes = True
 
+

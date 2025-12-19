@@ -47,3 +47,4 @@ async def verify_token_endpoint(token: str):
     except HTTPException:
         return {"valid": False}
 
+

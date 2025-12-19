@@ -116,3 +116,4 @@ class AuthService:
         user = await self.collection.find_one({"username": username})
         return user is not None
 
+

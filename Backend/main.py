@@ -11,6 +11,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 import logging
+import os
 
 from config import settings, print_config_info
 from database import connect_to_mongo, close_mongo_connection
@@ -65,16 +66,24 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configure CORS with settings from .env
+# Configure CORS - Allow all origins (can be restricted in production if needed)
+# Set ALLOW_ALL_CORS=true in .env to allow all, or specify FRONTEND_URL for specific origins
+allow_all_cors = os.getenv("ALLOW_ALL_CORS", "true").lower() == "true"
+
+if allow_all_cors:
+    cors_origins = ["*"]
+    logger.info("[CORS] Configured to allow ALL origins (for easy deployment)")
+else:
+    cors_origins = settings.cors_origins
+    logger.info(f"[CORS] Configured for specific origins: {cors_origins}")
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.cors_origins,  # Loaded from FRONTEND_URL in .env
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-logger.info(f"[CORS] Configured for: {settings.cors_origins}")
 
 # Include routers
 app.include_router(auth_router)
