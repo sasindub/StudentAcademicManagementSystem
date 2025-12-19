@@ -153,6 +153,22 @@ async def init_db_middleware(request, call_next):
     return response
 
 # Vercel serverless function handler
-# Vercel's Python runtime expects an ASGI app
-# Export it directly (no Mangum needed with newer Vercel runtime)
+# Try different export methods for Vercel compatibility
+try:
+    # Option 1: Direct export (for newer Vercel runtime)
+    handler = app
+    
+    # Option 2: ASGI3 application (standard)
+    application = app
+    
+    # Option 3: Mangum adapter (fallback)
+    try:
+        from mangum import Mangum
+        handler = Mangum(app, lifespan="auto", api_gateway_base_path="/")
+    except ImportError:
+        pass  # Mangum not available, use direct export
+except Exception as e:
+    logger.error(f"[ERROR] Handler setup failed: {e}")
+    # Fallback: just export app
+    handler = app
 
