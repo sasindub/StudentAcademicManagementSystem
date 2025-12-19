@@ -66,24 +66,16 @@ app = FastAPI(
     redoc_url="/redoc"
 )
 
-# Configure CORS - Allow all origins (can be restricted in production if needed)
-# Set ALLOW_ALL_CORS=true in .env to allow all, or specify FRONTEND_URL for specific origins
-allow_all_cors = os.getenv("ALLOW_ALL_CORS", "true").lower() == "true"
-
-if allow_all_cors:
-    cors_origins = ["*"]
-    logger.info("[CORS] Configured to allow ALL origins (for easy deployment)")
-else:
-    cors_origins = settings.cors_origins
-    logger.info(f"[CORS] Configured for specific origins: {cors_origins}")
-
+# Configure CORS - Allow frontend to connect
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=cors_origins,
+    allow_origins=settings.cors_origins,  # From .env FRONTEND_URL
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+logger.info(f"[CORS] Configured for origins: {settings.cors_origins}")
 
 # Include routers
 app.include_router(auth_router)

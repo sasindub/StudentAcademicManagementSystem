@@ -1,7 +1,7 @@
-# Environment
+# Environment files
 .env
 Backend/.env
-Frontend/.env
+Frontend/.env.local
 
 # Python
 __pycache__/
@@ -10,13 +10,13 @@ __pycache__/
 *.so
 .Python
 *.pyc
-Backend/**/__pycache__/
-api/Backend/**/__pycache__/
+venv/
+env/
 
 # Node
 node_modules/
-Frontend/node_modules/
 npm-debug.log*
+Frontend/node_modules/
 
 # Build
 dist/
@@ -35,4 +35,3 @@ Thumbs.db
 
 # Logs
 *.log
-
