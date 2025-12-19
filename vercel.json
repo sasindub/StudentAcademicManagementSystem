@@ -5,18 +5,15 @@
       "src": "api/index.py",
       "use": "@vercel/python",
       "config": {
-        "includeFiles": "Backend/**"
+        "maxLambdaSize": "15mb"
       }
     }
   ],
   "routes": [
     {
       "src": "/(.*)",
-      "dest": "/api/index.py"
+      "dest": "api/index.py"
     }
-  ],
-  "env": {
-    "PYTHONPATH": "Backend"
-  }
+  ]
 }
 

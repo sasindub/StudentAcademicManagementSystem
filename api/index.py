@@ -153,6 +153,6 @@ async def init_db_middleware(request, call_next):
     return response
 
 # Vercel serverless function handler
-from mangum import Mangum
-handler = Mangum(app, lifespan="off")
+# Vercel's Python runtime expects an ASGI app
+# Export it directly (no Mangum needed with newer Vercel runtime)
 

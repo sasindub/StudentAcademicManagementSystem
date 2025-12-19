@@ -1,4 +1,4 @@
-# Copy from Backend/requirements.txt
+# Dependencies for Vercel Serverless Function
 fastapi==0.104.1
 motor==3.3.2
 pymongo[srv]==4.6.1
@@ -11,6 +11,6 @@ python-dotenv==1.0.0
 bcrypt==4.1.2
 dnspython==2.4.2
 certifi==2023.11.17
-mangum==0.17.0
+# Note: mangum not needed - Vercel handles ASGI natively
 
 
