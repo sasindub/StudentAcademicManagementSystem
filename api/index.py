@@ -112,7 +112,26 @@ async def health_check():
     """Health check endpoint for monitoring."""
     return {
         "status": "healthy",
-        "service": "student-academic-api"
+        "service": "student-academic-api",
+        "db_initialized": _initialized
+    }
+
+@app.get("/debug", tags=["Debug"])
+async def debug_info():
+    """Debug endpoint - shows system info without DB."""
+    import sys
+    return {
+        "status": "running",
+        "python_version": sys.version,
+        "platform": sys.platform,
+        "cwd": os.getcwd(),
+        "path": sys.path[:3],
+        "db_initialized": _initialized,
+        "env_vars_present": {
+            "MONGODB_URI": "MONGODB_URI" in os.environ,
+            "DATABASE_NAME": "DATABASE_NAME" in os.environ,
+            "JWT_SECRET_KEY": "JWT_SECRET_KEY" in os.environ
+        }
     }
 
 # Initialize database connection on first request
@@ -123,18 +142,29 @@ async def initialize_db():
     global _initialized
     if not _initialized:
         try:
+            logger.info("[INFO] Starting database initialization...")
             await connect_to_mongo()
+            logger.info("[INFO] MongoDB connected, starting seed...")
             seed_service = SeedService()
             await seed_service.run_all_seeds()
             _initialized = True
-            logger.info("[OK] Database initialized")
+            logger.info("[OK] Database initialized successfully")
         except Exception as e:
             logger.error(f"[ERROR] Database init failed: {e}")
+            logger.exception("Full error traceback:")
+            # Don't mark as initialized so it tries again next request
+            # But don't crash the whole app
 
 # Middleware to initialize DB and add CORS headers
 @app.middleware("http")
 async def init_db_middleware(request, call_next):
-    await initialize_db()
+    # Try to initialize DB, but don't crash if it fails
+    try:
+        await initialize_db()
+    except Exception as e:
+        logger.error(f"[WARN] DB init middleware error: {e}")
+    
+    # Continue with request even if DB fails
     response = await call_next(request)
     
     # Explicitly add CORS headers to EVERY response
@@ -146,12 +176,9 @@ async def init_db_middleware(request, call_next):
     return response
 
 # Vercel serverless function handler
-# Use Mangum to wrap FastAPI for Vercel's serverless environment
-from mangum import Mangum
+# Vercel's Python runtime supports ASGI natively - no Mangum needed!
+# Just export the app directly - Vercel will handle the rest
 
-# Create handler with Mangum
-handler = Mangum(app, lifespan="off")
-
-# Also export app for compatibility
-application = app
+# This is all we need - Vercel detects and wraps it automatically
+# The 'app' variable is the ASGI application that Vercel runs
 
